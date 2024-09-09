@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reparar Equipo</title>
+    <style>
+        body {
+            background-image: url('consulta_image.jpeg');
+            background-size: cover;
+            background-position: center;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        input[type="text"], input[type="date"], textarea {
+            width: calc(100% - 22px);
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        textarea {
+            resize: vertical;
+            height: 100px;
+        }
+        select {
+            width: calc(100% - 22px);
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .danger-button {
+            background-color: #dc3545;
+        }
+        .danger-button:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><strong>Reparar Equipo</strong></h1>
+        <form id="reparar-equipo-form">
+            <div class="form-group">
+                <label for="direccion">Dirección del Equipo:</label>
+                <input type="text" id="direccion" name="direccion" readonly>
+            </div>
+            <div class="form-group">
+                <label for="tipo-equipo">Tipo de Equipo:</label>
+                <input type="text" id="tipo-equipo" name="tipo-equipo" readonly>
+            </div>
+            <div class="form-group">
+                <label for="fecha-reparacion">Fecha de Reparación:</label>
+                <input type="date" id="fecha-reparacion" name="fecha-reparacion">
+            </div>
+            <div class="form-group">
+                <label for="diagnostico">Diagnóstico de Reparación:</label>
+                <textarea id="diagnostico" name="diagnostico"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="reparador">Nombre del Reparador:</label>
+                <select id="reparador" name="reparador">
+                    <option value="">Selecciona un Ingeniero</option>
+                    <!-- Opciones se llenarán con JavaScript -->
+                </select>
+            </div>
+        </form>
+        <div class="button-container">
+            <button type="button" onclick="guardar()">Guardar</button>
+            <button class="danger-button" type="button" onclick="window.history.back()">Regresar</button>
+        </div>
+    </div>
+
+    <script>
+        // Función para obtener parámetros de consulta de la URL
+        function getQueryParam(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        // Función para cargar los detalles del equipo
+        async function loadEquipoDetails() {
+            const id = getQueryParam('id');
+            if (!id) {
+                alert('ID de equipo no proporcionado.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/detalle_equipo/${id}`);
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta de la API.');
+                }
+                const equipo = await response.json();
+                document.getElementById('direccion').value = equipo.direccion || '';
+                document.getElementById('tipo-equipo').value = equipo.tipo_equipo || '';
+            } catch (error) {
+                console.error('Error al cargar los detalles del equipo:', error);
+                alert('Error al cargar los detalles del equipo.');
+            }
+        }
+
+        // Función para cargar los ingenieros
+        async function loadIngenieros() {
+            try {
+                const response = await fetch('/api/ingenieros');
+                if (!response.ok) {
+                    throw new Error('Error al obtener los ingenieros.');
+                }
+                const ingenieros = await response.json();
+                console.log('Ingenieros cargados:', ingenieros); // Verifica los datos recibidos
+
+                const select = document.getElementById('reparador');
+                ingenieros.forEach(ingeniero => {
+                    const option = document.createElement('option');
+                    option.value = ingeniero; // Usa el nombre directamente como valor
+                    option.textContent = ingeniero;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error al cargar los ingenieros:', error);
+                alert('Error al cargar los ingenieros.');
+            }
+        }
+
+        // Función para guardar la información
+        async function guardar() {
+            const id = getQueryParam('id');
+            if (!id) {
+                alert('ID de equipo no proporcionado.');
+                return;
+            }
+
+            const fechaReparacion = document.getElementById('fecha-reparacion').value;
+            const diagnostico = document.getElementById('diagnostico').value;
+            const nombreReparador = document.getElementById('reparador').value;
+
+            // Imprimir datos para verificación
+            console.log('Fecha de reparación:', fechaReparacion);
+            console.log('Diagnóstico:', diagnostico);
+            console.log('Nombre del reparador:', nombreReparador);
+
+            // Validación de entrada
+            if (!fechaReparacion || !diagnostico || !nombreReparador) {
+                alert('Por favor, complete todos los campos obligatorios.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/reparar/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        fecha_reparacion: fechaReparacion,
+                        diagnostico_reparacion: diagnostico,
+                        nombre_reparador: nombreReparador,
+                    }),
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Error en la solicitud: ${errorText}`);
+                }
+
+                alert('Información guardada con éxito.');
+            } catch (error) {
+                console.error('Error al guardar la información:', error);
+                alert('Error al guardar la información.');
+            }
+        }
+
+        // Cargar los detalles del equipo y los ingenieros cuando la página se carga
+        window.onload = function() {
+            loadEquipoDetails();
+            loadIngenieros();
+        };
+    </script>
+</body>
+</html>

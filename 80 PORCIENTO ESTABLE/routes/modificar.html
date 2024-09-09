@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modificar Equipo</title>
+    <style>
+        body {
+            background-image: url('consulta_image.jpeg');
+            margin: 0;
+            padding: 0;
+            overflow: auto;
+            font-family: Arial, sans-serif;
+            position: relative;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 100px;
+            max-width: 700px;
+            max-height: 800px;
+            margin: 20px auto;
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Centra los botones horizontalmente */
+            gap: 10px;
+            margin-top: 50px;
+        }
+        .button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            display: inline-block;
+            width: 200px; /* Asegura que todos los botones tengan el mismo tamaño */
+            height: 50px; /* Asegura que todos los botones tengan la misma altura */
+        }
+        .button:hover {
+            background-color: #0056b3;
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        .button::before {
+            content: 'Selecciona entre las 5 opciones disponibles'; /* Mensaje de ayuda */
+            position: absolute;
+            left: -250px; /* Ajusta esta posición para mover el mensaje a la derecha del botón */
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.75);
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            font-size: 14px;
+            z-index: 1;
+            width: 250px; /* Ancho del mensaje de ayuda */
+            text-align: center; /* Centra el texto en el mensaje de ayuda */
+        }
+        .button:hover::before {
+            opacity: 0; /* Oculta el mensaje cuando el ratón está sobre el botón */
+        }
+        .tooltip {
+            display: none;
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.75);
+            padding: 0;
+            border-radius: 6px;
+            font-size: 14px;
+            white-space: nowrap;
+            left: 110%; /* Ajusta la posición del tooltip a la derecha del botón */
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+            width: 250px; /* Aumenta el ancho del tooltip */
+            height: 150px; /* Aumenta el alto del tooltip */
+        }
+        .button:hover .tooltip {
+            display: block;
+            opacity: 1;
+            transform: translateY(-50%) translateX(0);
+        }
+        .tooltip img {
+            width: 100%;
+            height: 100%; /* Asegura que la imagen ocupe todo el espacio del tooltip */
+            border-radius: 6px;
+        }
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: -15px; /* Ajusta la posición del triángulo */
+            transform: translateY(-50%);
+            border-width: 10px; /* Aumenta el tamaño del triángulo */
+            border-style: solid;
+            border-color: transparent rgba(0, 0, 0, 0.75) transparent transparent;
+        }
+        .audio-control {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .audio-button {
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        .audio-button:hover {
+            background-color: #218838;
+        }
+        .audio-button.silenced {
+            background-color: #dc3545;
+        }
+        .audio-button.silenced:hover {
+            background-color: #c82333;
+        }
+        /* Estilos para las burbujas */
+        #bubbles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(27, 255, 6, 0.6);
+            pointer-events: none;
+            opacity: 0;
+            animation: bubbleAnimation linear;
+        }
+        @keyframes bubbleAnimation {
+            from {
+                transform: translateY(100vh) scale(0.5);
+                opacity: 1;
+            }
+            to {
+                transform: translateY(-100vh) scale(1.5);
+                opacity: 0;
+            }
+        }
+        /* Estilos para los botones ocultos */
+        .hidden {
+            display: none;
+        }
+        /* Estilos para el estado del equipo */
+        .estado {
+            font-size: 20px;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 5px;
+            color: #fff;
+            display: inline-block;
+            margin-top: 20px;
+        }
+        .estado-revisado {
+            background-color: #28a745; /* Verde para revisado */
+        }
+        .estado-reparado {
+            background-color: #ffc107; /* Amarillo para reparado */
+        }
+        .estado-entregado {
+            background-color: #007bff; /* Azul para entregado */
+        }
+        .estado-editado {
+            background-color: #dc3545; /* Rojo para editado */
+        }
+    </style>
+</head>
+<body>
+    <div id="bubbles"></div>
+    <div class="container">
+        <h1><b>Menu de modificación de equipo</b></h1>
+        <hr>
+        <h2 id="title">Equipo Tipo de equipo de la dirección Dirección ha sido seleccionado</h2>
+        <div id="estado" class="estado"></div>
+        <br>
+        <div class="button-container">
+            <button id="revisar" class="button" onclick="revisar()">
+                Revisar
+                <span class="tooltip"><img src="revisar_imagen.jpeg" alt="Revisar"></span>
+            </button>
+            <button id="reparar" class="button" onclick="reparar()">
+                Reparar
+                <span class="tooltip"><img src="reparar_imagen.jpeg" alt="Reparar"></span>
+            </button>
+            <button id="entregar" class="button" onclick="entregar()">
+                Entregar
+                <span class="tooltip"><img src="entregar_equipo.jpeg" alt="Entregar"></span>
+            </button>
+            <button id="editar" class="button" onclick="editar()">
+                Editar
+            </button>
+            <button id="regresar" class="button" onclick="window.history.back()">
+                Regresar
+            </button>
+        </div>
+        <div class="audio-control">
+            <button id="audio-toggle" class="audio-button">Silenciar Audio</button>
+        </div>
+    </div>
+
+    <script>
+        // Variables para la síntesis de voz
+        let audioEnabled = true;
+        const synth = window.speechSynthesis;
+
+        // Función para obtener el ID del equipo de la URL
+        function getQueryParam(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        async function loadEquipoDetails() {
+            const id = getQueryParam('id');
+            if (!id) {
+                alert('ID de equipo no proporcionado.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/detalle_equipo/${id}`);
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta de la API.');
+                }
+                const equipo = await response.json();
+                document.getElementById('title').innerText = `Equipo ${equipo.tipo_equipo} de la dirección ${equipo.direccion} ha sido seleccionado`;
+
+                // Mostrar el estado del equipo
+                const estadoElement = document.getElementById('estado');
+                estadoElement.innerText = `Estado: ${equipo.estado}`;
+                estadoElement.className = `estado estado-${equipo.estado.toLowerCase()}`;
+
+                // Manejo de visibilidad de botones según el estado del equipo
+                if (equipo.estado === 'Revisado') {
+                    document.getElementById('revisar').classList.add('hidden');
+                    document.getElementById('reparar').classList.remove('hidden');
+                    document.getElementById('entregar').classList.add('hidden');
+                } else if (equipo.estado === 'Reparado') {
+                    document.getElementById('revisar').classList.add('hidden');
+                    document.getElementById('reparar').classList.add('hidden');
+                    document.getElementById('entregar').classList.remove('hidden');
+                } else if (equipo.estado === 'Entregado') {
+                    document.getElementById('revisar').classList.add('hidden');
+                    document.getElementById('reparar').classList.add('hidden');
+                    document.getElementById('entregar').classList.add('hidden');
+                } else {
+                    // Default visibility for other states (like 'Editado')
+                    document.getElementById('revisar').classList.remove('hidden');
+                    document.getElementById('reparar').classList.remove('hidden');
+                    document.getElementById('entregar').classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Error fetching equipo details:', error);
+                alert('Error al cargar los detalles del equipo.');
+            }
+        }
+
+        function revisar() {
+            speak('Revisar el equipo');
+            const id = getQueryParam('id'); // Obtén el ID de la URL actual
+            if (id) {
+                window.location.href = `revisar.html?id=${id}`; // Redirige a revisar.html con el ID
+            } else {
+                alert('ID de equipo no proporcionado.');
+            }
+        }
+
+        function reparar() {
+            speak('Reparar el equipo');
+            const id = getQueryParam('id'); // Obtén el ID de la URL actual
+            if (id) {
+                window.location.href = `reparar.html?id=${id}`; // Redirige a reparar.html con el ID
+            } else {
+                alert('ID de equipo no proporcionado.');
+            }
+        }
+
+        function entregar() {
+            speak('Entregar el equipo');
+            alert('Entregar función no implementada.');
+        }
+
+        function editar() {
+            speak('Editar detalles del equipo');
+            alert('Editar función no implementada.');
+        }
+
+        function speak(text) {
+            if (audioEnabled) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                synth.speak(utterance);
+            }
+        }
+
+        // Control de audio
+        document.getElementById('audio-toggle').addEventListener('click', () => {
+            audioEnabled = !audioEnabled;
+            document.getElementById('audio-toggle').textContent = audioEnabled ? 'Silenciar Audio' : 'Activar Audio';
+            document.getElementById('audio-toggle').classList.toggle('silenced', !audioEnabled);
+        });
+
+        // Generar burbujas
+        function createBubble() {
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            const size = Math.random() * 50 + 10; // tamaño entre 10px y 60px
+            bubble.style.width = `${size}px`;
+            bubble.style.height = `${size}px`;
+            bubble.style.left = `${Math.random() * 100}vw`;
+            bubble.style.animationDuration = `${Math.random() * 5 + 5}s`; // duración entre 5s y 10s
+            bubble.style.animationDelay = `${Math.random() * 10}s`; // retraso entre 0s y 10s
+            document.getElementById('bubbles').appendChild(bubble);
+        }
+
+        // Crear burbujas a intervalos regulares
+        setInterval(createBubble, 300); // cada 300ms
+
+        // Cargar los detalles del equipo al iniciar
+        window.onload = loadEquipoDetails;
+    </script>
+</body>
+</html>

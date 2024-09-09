@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingreso de Personal y Técnicos</title>
+    <style>
+        #title {
+            text-align: center;
+            background-color: #007bff;
+            padding: 20px;
+            color: white;
+        }
+
+        #title_form {
+            text-align: center;
+            color: rgb(0, 0, 0);
+        }
+
+        body {
+            background-image: url('image_home.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+        }
+
+        .form-column {
+            background-color: #dcdcdc;
+            border-radius: 40px;
+            overflow: hidden;
+            padding: 10px;
+            margin-left: 80px;
+            width: 100%;
+            margin-right: 10px;
+        }
+
+        .form-column:nth-child(2) {
+            margin-top: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .form-group input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #aaa;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .form-group button {
+            display: block;
+            width: 100%;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+            text-align: center;
+        }
+
+        .form-group button:hover {
+            background-color: #0056b3;
+        }
+
+        .data-section {
+            background-color: #dcdcdc;
+            margin-right: 100px;
+            text-align: center;
+            border-radius: 40px;
+            overflow: hidden;
+            width: 45%;
+        }
+
+        .data-section h3 {
+            margin-top: 0;
+        }
+
+        .data-section table {
+            width: 100%;
+            padding: 20px;
+            border-collapse: collapse;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .data-section th, .data-section td {
+            padding: 10px;
+            text-align: center;
+        }
+
+        .data-section th {
+            background-color: #f4f4f4;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .actions button {
+            margin-left: 5px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: #e0e0e0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 400px;
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+        }
+
+        .modal-content button {
+            margin: 0 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="title">Ingresar Personal</h1>
+    <hr>
+    <div class="container">
+        <!-- Columna para ingresar personal de laboratorio y personal de semaforización -->
+        <div>
+            <div class="form-column">
+                <h2 id="title_form">Ingresar personal de laboratorio</h2>
+
+                <form id="engineer-form">
+                    <div class="form-group">
+                        <label for="personal-name">Nombre:</label>
+                        <input type="text" id="personal-name" name="engineerName" placeholder="Nombre del personal - laboratorio">
+                    </div>
+                    <div class="form-group">
+                        <button type="submit">Agregar</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="form-column">
+                <h2 id="title_form">Ingresar personal semaforización</h2>
+                <form id="technician-form">
+                    <div class="form-group">
+                        <label for="technician-name">Nombre:</label>
+                        <input type="text" id="technician-name" name="technicianName" placeholder="Nombre del integrante - semaforización">
+                    </div>
+                    <div class="form-group">
+                        <button type="submit">Agregar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Sección para mostrar datos -->
+        <div class="data-section">
+            <h2 id="title_form">Personal ingresado actualmente</h2>
+            <hr>
+            <div style="display: flex; justify-content: space-between;">
+                <div>
+                    <h3 id="title_form">Semaforización</h3>
+                    <form id="search-technician-form" class="form-group">
+                        <label for="search-technician">Buscar:</label>
+                        <input type="text" id="search-technician" placeholder="Buscar por nombre">
+                    </form>
+                    <p>Total: <span id="total-technicians">0</span></p>
+                    <table id="technician-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div>
+                    <h3 id="title_form">Laboratorio</h3>
+                    <form id="search-engineer-form" class="form-group">
+                        <label for="search-engineer">Buscar:</label>
+                        <input type="text" id="search-engineer" placeholder="Buscar por nombre">
+                    </form>
+                    <p>Total: <span id="total-engineers">0</span></p>
+                    <table id="engineer-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario de edición -->
+    <div class="modal" id="edit-form">
+        <div class="modal-content">
+            <h2>Editar Registro</h2>
+            <form id="edit-form-content">
+                <input type="hidden" id="edit-id">
+                <input type="hidden" id="edit-type">
+                <div class="form-group">
+                    <label for="edit-name">Nombre:</label>
+                    <input type="text" id="edit-name" placeholder="Nombre del registro">
+                </div>
+                <div class="form-group">
+                    <button type="submit">Guardar Cambios</button>
+                    <button type="button" id="cancel-edit">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirmación de eliminación -->
+    <div class="modal" id="delete-confirmation">
+        <div class="modal-content">
+            <h2>Confirmar Eliminación</h2>
+            <form id="delete-form-content">
+                <input type="hidden" id="delete-id">
+                <input type="hidden" id="delete-type">
+                <p>¿Estás seguro de que quieres eliminar este registro?</p>
+                <div class="form-group">
+                    <button type="submit">Eliminar</button>
+                    <button type="button" id="cancel-delete">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loadData = async () => {
+                try {
+                    const response = await fetch('/view-data');
+                    const data = await response.json();
+
+                    const technicianTableBody = document.querySelector('#technician-table tbody');
+                    const engineerTableBody = document.querySelector('#engineer-table tbody');
+
+                    const technicianFilter = document.getElementById('search-technician').value.toLowerCase();
+                    const engineerFilter = document.getElementById('search-engineer').value.toLowerCase();
+
+                    technicianTableBody.innerHTML = '';
+                    engineerTableBody.innerHTML = '';
+
+                    let technicianCount = 0;
+                    let engineerCount = 0;
+
+                    data.technicians.forEach(technician => {
+                        if (technician.nombre.toLowerCase().includes(technicianFilter)) {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${technician.id}</td>
+                                <td>${technician.nombre}</td>
+                                <td class="actions">
+                                    <button onclick="editRecord('technician', ${technician.id}, '${technician.nombre}')">Editar</button>
+                                    <button onclick="confirmDelete('technician', ${technician.id})">Eliminar</button>
+                                </td>`;
+                            technicianTableBody.appendChild(row);
+                            technicianCount++;
+                        }
+                    });
+
+                    data.engineers.forEach(engineer => {
+                        if (engineer.nombre.toLowerCase().includes(engineerFilter)) {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${engineer.id}</td>
+                                <td>${engineer.nombre}</td>
+                                <td class="actions">
+                                    <button onclick="editRecord('engineer', ${engineer.id}, '${engineer.nombre}')">Editar</button>
+                                    <button onclick="confirmDelete('engineer', ${engineer.id})">Eliminar</button>
+                                </td>`;
+                            engineerTableBody.appendChild(row);
+                            engineerCount++;
+                        }
+                    });
+
+                    document.getElementById('total-technicians').textContent = technicianCount;
+                    document.getElementById('total-engineers').textContent = engineerCount;
+
+                } catch (error) {
+                    console.error('Error fetching data:', error);
+                }
+            };
+
+            loadData();
+
+            document.getElementById('engineer-form').addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const engineerName = document.getElementById('personal-name').value;
+
+                try {
+                    await fetch('/add-engineer', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: new URLSearchParams({ engineerName })
+                    });
+                    loadData();
+                } catch (error) {
+                    console.error('Error adding engineer:', error);
+                }
+            });
+
+            document.getElementById('technician-form').addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const technicianName = document.getElementById('technician-name').value;
+
+                try {
+                    await fetch('/add-technician', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: new URLSearchParams({ technicianName })
+                    });
+                    loadData();
+                } catch (error) {
+                    console.error('Error adding technician:', error);
+                }
+            });
+
+            document.getElementById('edit-form-content').addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const id = document.getElementById('edit-id').value;
+                const type = document.getElementById('edit-type').value;
+                const name = document.getElementById('edit-name').value;
+
+                try {
+                    await fetch(`/edit-${type}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: new URLSearchParams({ id, name })
+                    });
+                    loadData();
+                    document.getElementById('edit-form').style.display = 'none';
+                } catch (error) {
+                    console.error('Error editing record:', error);
+                }
+            });
+
+            document.getElementById('cancel-edit').addEventListener('click', () => {
+                document.getElementById('edit-form').style.display = 'none';
+            });
+
+            document.getElementById('delete-form-content').addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const id = document.getElementById('delete-id').value;
+                const type = document.getElementById('delete-type').value;
+
+                try {
+                    await fetch(`/delete-${type}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: new URLSearchParams({ id })
+                    });
+                    loadData();
+                    document.getElementById('delete-confirmation').style.display = 'none';
+                } catch (error) {
+                    console.error('Error deleting record:', error);
+                }
+            });
+
+            document.getElementById('cancel-delete').addEventListener('click', () => {
+                document.getElementById('delete-confirmation').style.display = 'none';
+            });
+
+            document.getElementById('search-technician').addEventListener('input', loadData);
+            document.getElementById('search-engineer').addEventListener('input', loadData);
+        });
+
+        function editRecord(type, id, name) {
+            document.getElementById('edit-form').style.display = 'flex';
+            document.getElementById('edit-id').value = id;
+            document.getElementById('edit-name').value = name;
+            document.getElementById('edit-type').value = type;
+        }
+
+        function confirmDelete(type, id) {
+            document.getElementById('delete-confirmation').style.display = 'flex';
+            document.getElementById('delete-id').value = id;
+            document.getElementById('delete-type').value = type;
+        }
+    </script>
+</body>
+</html>

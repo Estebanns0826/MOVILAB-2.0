@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Equipos</title>
+    <style>
+        body {
+            background-image: url('consulta_image.jpeg');
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: auto;
+            position: relative;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 80%;
+            max-width: 1200px;
+            position: relative;
+            z-index: 1;
+            margin: auto;
+            margin-top: 50px;
+        }
+        h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .danger-button {
+            background-color: #dc3545;
+        }
+        .danger-button:hover {
+            background-color: #c82333;
+        }
+        .back-button {
+            background-color: #17cd1d;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            display: block;
+            text-align: center;
+            margin: 20px auto;
+        }
+        .back-button:hover {
+            background-color: #5a6268;
+        }
+        .result {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .data-table {
+            align-items: center;
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            opacity: 0;
+            animation: fadeIn 1s forwards;
+        }
+        .data-table th, .data-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        .data-table th {
+            background-color: #007bff;
+            color: #fff;
+        }
+        .data-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .data-table a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .data-table a:hover {
+            text-decoration: underline;
+        }
+        .operation-buttons {
+            margin-top: 30px;
+            text-align: center;
+        }
+        .operation-buttons button {
+            width: 150px;
+            display: inline-block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <button class="back-button" onclick="window.history.back()">Regresar</button>
+    <div class="container">
+        <h1>Consulta de Equipos</h1>
+        <div class="form-group">
+            <label for="direccion">Dirección:</label>
+            <input type="text" id="direccion" name="direccion" placeholder="Dirección">
+        </div>
+        <div class="form-group">
+            <button onclick="consultarEquipos()">Consultar</button>
+        </div>
+        <div class="result">
+            <div id="ultimos-equipos">
+                <hr>
+                <h2>Últimos 5 Equipos Ingresados</h2>
+                <table class="data-table" id="ultimos-equipos-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Dirección</th>
+                            <th>Movimiento</th>
+                            <th>Tipo de Equipo</th>
+                            <th>Tarjetas Ingresadas</th>
+                            <th>Nombre Entrega</th>
+                            <th>Nombre Recibe</th>
+                            <th>Estado</th>
+                            <th>Fecha Notificación</th>
+                            <th>Detalles</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Los últimos 5 equipos se insertarán aquí mediante JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="consulta-result">
+                <h2>Resultados de la Consulta</h2>
+                <table class="data-table" id="resultado-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Dirección</th>
+                            <th>Movimiento</th>
+                            <th>Tipo de Equipo</th>
+                            <th>Tarjetas Ingresadas</th>
+                            <th>Nombre Entrega</th>
+                            <th>Nombre Recibe</th>
+                            <th>Estado</th>
+                            <th>Fecha Notificación</th>
+                            <th>Detalles</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Los datos se insertarán aquí mediante JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Función para consultar equipos
+        async function consultarEquipos() {
+            const direccion = document.getElementById('direccion').value.trim();
+            const tableBody = document.querySelector('#resultado-table tbody');
+            const resultTable = document.getElementById('resultado-table');
+            const ultimosEquiposDiv = document.getElementById('ultimos-equipos');
+            const ultimosEquiposTableBody = document.querySelector('#ultimos-equipos-table tbody');
+
+            // Limpiar tablas
+            tableBody.innerHTML = '';
+            ultimosEquiposTableBody.innerHTML = '';
+
+            try {
+                // Mostrar los últimos 5 equipos al inicio
+                const ultimosResponse = await fetch('/api/ultimos_equipos');
+                if (!ultimosResponse.ok) {
+                    throw new Error('Error en la respuesta de la API de últimos equipos.');
+                }
+                const ultimosData = await ultimosResponse.json();
+                const lastFiveRecords = ultimosData.slice(-5);
+
+                if (lastFiveRecords.length > 0) {
+                    lastFiveRecords.forEach(equipo => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${equipo.id}</td>
+                            <td>${equipo.direccion}</td>
+                            <td>${equipo.movimiento}</td>
+                            <td>${equipo.tipo_equipo}</td>
+                            <td>${equipo.tarjetas_ingresadas}</td>
+                            <td>${equipo.nombre_entrega}</td>
+                            <td>${equipo.nombre_recibe}</td>
+                            <td>${equipo.estado}</td>
+                            <td>${equipo.fecha_notificacion}</td>
+                            <td>
+                                <button onclick="window.open('/api/generar-informe/${equipo.id}', '_blank')">Ver Informe</button>
+                                <button class="danger-button" onclick="confirmarEliminar(${equipo.id})">Eliminar</button>
+                                <button onclick="window.location.href='modificar.html?id=${equipo.id}'">Modificar</button>
+                            </td>
+                        `;
+                        ultimosEquiposTableBody.appendChild(row);
+                    });
+                    ultimosEquiposDiv.style.display = 'block'; // Mostrar la sección de últimos equipos
+                } else {
+                    ultimosEquiposDiv.style.display = 'none'; // Ocultar la sección si no hay datos
+                }
+
+                if (!direccion) {
+                    resultTable.style.display = 'none'; // Ocultar tabla de resultados si no hay dirección
+                    return; // Salir si no se ingresa dirección
+                }
+
+                // Buscar equipos por dirección si se ingresa una dirección
+                const response = await fetch(`/api/buscar_equipos?direccion=${encodeURIComponent(direccion)}`);
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta de la API.');
+                }
+                const data = await response.json();
+
+                if (data.length > 0) {
+                    data.forEach(equipo => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${equipo.id}</td>
+                            <td>${equipo.direccion}</td>
+                            <td>${equipo.movimiento}</td>
+                            <td>${equipo.tipo_equipo}</td>
+                            <td>${equipo.tarjetas_ingresadas}</td>
+                            <td>${equipo.nombre_entrega}</td>
+                            <td>${equipo.nombre_recibe}</td>
+                            <td>${equipo.estado}</td>
+                            <td>${equipo.fecha_notificacion}</td>
+                            <td>
+                                <button onclick="window.open('/api/generar-informe/${equipo.id}', '_blank')">Ver Informe</button>
+                                <button class="danger-button" onclick="confirmarEliminar(${equipo.id})">Eliminar</button>
+                                <button onclick="window.location.href='modificar.html?id=${equipo.id}'">Modificar</button>
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                    resultTable.style.display = 'table'; // Mostrar la tabla de resultados
+                    ultimosEquiposDiv.style.display = 'none'; // Ocultar la sección de últimos equipos
+                } else {
+                    alert('No se encontraron equipos con la dirección proporcionada.');
+                    resultTable.style.display = 'none'; // Ocultar la tabla si no hay resultados
+                    ultimosEquiposDiv.style.display = 'block'; // Mostrar la sección de últimos equipos
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                alert('Error al consultar los equipos.');
+                resultTable.style.display = 'none'; // Ocultar la tabla de resultados en caso de error
+                ultimosEquiposDiv.style.display = 'block'; // Mostrar la sección de últimos equipos en caso de error
+            }
+        }
+
+        // Función para confirmar eliminación
+        function confirmarEliminar(id) {
+            const password = prompt('Por favor, ingresa la contraseña para confirmar la eliminación:');
+            if (password === 'tumo123') { // Contraseña para confirmar la eliminación
+                eliminarEquipo(id);
+            } else {
+                alert('Contraseña incorrecta.');
+            }
+        }
+
+        // Función para eliminar equipo
+        async function eliminarEquipo(id) {
+            try {
+                const response = await fetch(`/api/eliminar_equipo/${id}`, {
+                    method: 'DELETE'
+                });
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta de la API de eliminación.');
+                }
+                // Volver a cargar los equipos después de la eliminación
+                await consultarEquipos();
+            } catch (error) {
+                console.error('Error deleting data:', error);
+                alert('Error al eliminar el equipo.');
+            }
+        }
+
+        // Cargar los últimos equipos al iniciar la página
+        window.onload = async function() {
+            await consultarEquipos();
+        };
+    </script>
+</body>
+</html>

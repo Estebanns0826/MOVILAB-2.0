@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <h1> SI NO SABE LO QUE ESTA HACIENDO, SE RECOMIENDA SALIR DE ESTA PAGINA</h1>
+    <H3> SOLO ES POSIBLE MIRAR LOS REGISTROS ACTUALES</H3>
+    <title>Gestión de Base de Datos (DESARROLLADOR)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #222;
+            color: #f4f4f4;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            background-color: #333;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(255,0,0,0.7);
+            width: 100%;
+            max-width: 800px;
+            color: #ff6b6b;
+        }
+
+        h1 {
+            color: #ff6b6b;
+            margin: 0;
+            font-size: 2em;
+        }
+
+        .content {
+            text-align: center;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #444;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(255,0,0,0.7);
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #666;
+            color: #fff;
+        }
+
+        th {
+            background-color: #ff6b6b;
+        }
+
+        .delete-btn {
+            background-color: #ff4757;
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .delete-btn:hover {
+            background-color: #e84118;
+            transform: scale(1.05);
+        }
+
+        .delete-btn:active {
+            background-color: #d63031;
+            transform: scale(0.95);
+        }
+
+        #bubbles-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 0, 0, 0.6);
+            opacity: 0.5;
+            pointer-events: none;
+            animation: rise 10s infinite;
+        }
+
+        @keyframes rise {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(-10vh) scale(1);
+                opacity: 0;
+            }
+        }
+
+        .confirmation-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            flex-direction: column;
+        }
+
+        .confirmation-box {
+            background: #fff;
+            color: #000;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+            width: 80%;
+            max-width: 500px;
+        }
+
+        .confirmation-box h2 {
+            margin-top: 0;
+        }
+
+        .confirmation-box input {
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100%;
+        }
+
+        .confirmation-box button {
+            background-color: #ff4757;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            margin: 5px;
+        }
+
+        .confirmation-box button:hover {
+            background-color: #e84118;
+        }
+
+        .confirmation-box button:active {
+            background-color: #d63031;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Gestión de Base de Datos (DESARROLLADOR)</h1>
+    </div>
+    <div class="content">
+        <p id="db-info">Cargando información de la base de datos...</p>
+        <table id="tables-info">
+            <thead>
+                <tr>
+                    <th>Nombre de la Tabla</th>
+                    <th>Número de Registros</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- La información de las tablas se insertará aquí -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Contenedor para las burbujas -->
+    <div id="bubbles-container"></div>
+
+    <!-- Formulario de confirmación -->
+    <div id="confirmation-overlay" class="confirmation-overlay">
+        <div class="confirmation-box">
+            <h2>¡ALERTA!</h2>
+            <p>Estás a punto de eliminar la tabla <span id="table-to-delete"></span>. Esta acción es irreversible.</p>
+            <input type="password" id="confirm-password" placeholder="Ingresa la contraseña"/>
+            <button id="confirm-delete">Eliminar</button>
+            <button id="cancel-delete">Cancelar</button>
+        </div>
+    </div>
+
+    <script>
+        function createBubble() {
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            const size = Math.random() * 50 + 20; // Tamaño aleatorio entre 20px y 70px
+            bubble.style.width = `${size}px`;
+            bubble.style.height = `${size}px`;
+            bubble.style.left = `${Math.random() * 100}vw`; // Posición horizontal aleatoria
+            bubble.style.animationDuration = `${Math.random() * 5 + 5}s`; // Duración de animación entre 5s y 10s
+            document.getElementById('bubbles-container').appendChild(bubble);
+            setTimeout(() => {
+                bubble.remove(); // Elimina la burbuja después de que termine la animación
+            }, 10000); // La duración de la animación más un pequeño margen
+        }
+
+        function showAlert(message) {
+            alert(message); // Utiliza la alerta estándar del navegador
+        }
+
+        function showConfirmationOverlay(tableName) {
+            document.getElementById('table-to-delete').textContent = tableName;
+            document.getElementById('confirmation-overlay').style.display = 'flex';
+        }
+
+        document.getElementById('cancel-delete').addEventListener('click', () => {
+            document.getElementById('confirmation-overlay').style.display = 'none';
+        });
+
+        document.getElementById('confirm-delete').addEventListener('click', () => {
+            const password = document.getElementById('confirm-password').value;
+            const tableName = document.getElementById('table-to-delete').textContent;
+            
+            if (password === 'tumo123') {
+                if (confirm(`¡ESTO ES SERIO! ¿Estás absolutamente seguro de que deseas eliminar la tabla "${tableName}"? ¡Esto es irreversible!`)) {
+                    fetch('/api/delete-table', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ tableName })
+                    })
+                    .then(response => response.text())
+                    .then(message => {
+                        alert(message);
+                        location.reload();
+                    })
+                    .catch(error => {
+                        console.error('Error deleting table:', error);
+                        showAlert('¡ERROR CRÍTICO AL ELIMINAR LA TABLA! Consulta la consola para más detalles.');
+                    });
+                }
+            } else {
+                showAlert('¡ERROR! Contraseña incorrecta. No se ha realizado ninguna acción.');
+            }
+
+            document.getElementById('confirmation-overlay').style.display = 'none';
+        });
+
+        // Crear burbujas en intervalos regulares
+        setInterval(createBubble, 500); // Crear una burbuja cada 500ms
+
+        fetch('/api/tables-info')
+            .then(response => response.json())
+            .then(data => {
+                const tablesInfoElement = document.getElementById('tables-info').getElementsByTagName('tbody')[0];
+                data.forEach(table => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${table.name}</td>
+                        <td>${table.count}</td>
+                        <td><button class="delete-btn" data-table="${table.name}">Eliminar</button></td>
+                    `;
+                    tablesInfoElement.appendChild(row);
+                });
+
+                document.querySelectorAll('.delete-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const tableName = e.target.getAttribute('data-table');
+                        showConfirmationOverlay(tableName);
+                    });
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching tables info:', error);
+                document.getElementById('db-info').textContent = 'Error al cargar la información de la base de datos.';
+            });
+    </script>
+</body>
+</html>
