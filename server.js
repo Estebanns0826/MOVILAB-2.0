@@ -236,17 +236,17 @@ app.get('/api/equipos/:id', (req, res) => {
 
 
 
-// Ruta para obtener los últimos 5 registros
 app.get('/api/ultimos_equipos', (req, res) => {
-    db.all('SELECT * FROM Equipos ORDER BY id DESC LIMIT 5', [], (err, rows) => {
+    db.all('SELECT * FROM Equipos', [], (err, rows) => {
         if (err) {
-            console.error('Error retrieving recent records', err);
-            res.status(500).send('Error retrieving recent records');
+            console.error('Error retrieving all records', err);
+            res.status(500).send('Error retrieving all records');
         } else {
             res.json(rows);
         }
     });
 });
+
 
 
 // GUARDAR DIRECCIÓN RESULTANTE DEL FRONT
@@ -733,10 +733,145 @@ app.get('/api/equipos_pendientes', (req, res) => {
     });
 });
 
+// Ruta para obtener periféricos
+app.get('/api/perifericos', (req, res) => {
+    db.all('SELECT id, nombre FROM perifericos', [], (err, rows) => {
+        if (err) {
+            console.error('Error retrieving peripherals', err);
+            return res.status(500).send('Error retrieving peripherals');
+        }
+        res.json({ peripherals: rows });
+    });
+});
+
+// Ruta para añadir un nuevo periférico
+app.post('/api/perifericos', (req, res) => {
+    const { nombre } = req.body;
+    db.run('INSERT INTO perifericos (nombre) VALUES (?)', [nombre], function (err) {
+        if (err) {
+            console.error('Error adding peripheral', err);
+            return res.status(500).send('Error adding peripheral');
+        }
+        res.status(201).send({ id: this.lastID });
+    });
+});
+
+// Ruta para editar un periférico
+app.post('/api/perifericos/editar', (req, res) => {
+    const { id, nombre } = req.body;
+    db.run('UPDATE perifericos SET nombre = ? WHERE id = ?', [nombre, id], function (err) {
+        if (err) {
+            console.error('Error updating peripheral', err);
+            return res.status(500).send('Error updating peripheral');
+        }
+        res.status(200).send('Peripheral updated');
+    });
+});
+
+// Ruta para eliminar un periférico
+app.post('/api/perifericos/eliminar', (req, res) => {
+    const { id } = req.body;
+    db.run('DELETE FROM perifericos WHERE id = ?', [id], function (err) {
+        if (err) {
+            console.error('Error deleting peripheral', err);
+            return res.status(500).send('Error deleting peripheral');
+        }
+        res.status(200).send('Peripheral deleted');
+    });
+});
 
 
-// Inicia el servidor
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+// Ruta para editar un periférico
+app.post('/api/perifericos/editar', (req, res) => {
+    const { id, nombre } = req.body;
+    db.run('UPDATE perifericos SET nombre = ? WHERE id = ?', [nombre, id], function (err) {
+        if (err) {
+            console.error('Error updating peripheral', err);
+            return res.status(500).send('Error updating peripheral');
+        }
+        res.status(200).send('Peripheral updated');
+    });
+});
+
+// Ruta para eliminar un periférico
+app.post('/api/perifericos/eliminar', (req, res) => {
+    const { id } = req.body;
+    db.run('DELETE FROM perifericos WHERE id = ?', [id], function (err) {
+        if (err) {
+            console.error('Error deleting peripheral', err);
+            return res.status(500).send('Error deleting peripheral');
+        }
+        res.status(200).send('Peripheral deleted');
+    });
+});
+
+app.post('/guardar_periferico', (req, res) => {
+    console.log('Datos recibidos:', req.body);
+
+    // Extraer datos del cuerpo de la solicitud
+    const {
+        movimiento,
+        tipo_periferico,
+        cantidad_perifericos,
+        nombre_entrega,
+        nombre_recibe,
+        observaciones,
+        fecha_notificacion,
+        direccion_resultante
+    } = req.body;
+
+    // Validar que todos los campos requeridos están presentes
+    if (!movimiento || !tipo_periferico || !cantidad_perifericos || !direccion_resultante || !nombre_entrega || !nombre_recibe || !fecha_notificacion) {
+        console.error('Datos incompletos:', req.body);
+        return res.status(400).json({ success: false, message: 'Datos incompletos o incorrectos' });
+    }
+
+    // Asegúrate de que cantidad_perifericos sea un número
+    const cantidadPerifericos = parseInt(cantidad_perifericos, 10);
+    if (isNaN(cantidadPerifericos) || cantidadPerifericos < 1) {
+        return res.status(400).json({ success: false, message: 'Cantidad de periféricos debe ser un número válido' });
+    }
+
+    // Consulta SQL para insertar los datos en la tabla `data_perifericos`, incluyendo el estado por defecto
+    const sql = 'INSERT INTO data_perifericos (tipo_movimiento, tipo_periferico, cantidad, direccion, nombre_entrega, nombre_recibe, observaciones, fecha_notificacion, estado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+
+    // Ejecutar la consulta
+    db.run(sql, [movimiento, tipo_periferico, cantidadPerifericos, direccion_resultante, nombre_entrega, nombre_recibe, observaciones, fecha_notificacion, 'notificado'], function (err) {
+        if (err) {
+            console.error('Error al insertar datos en data_perifericos:', err.message);
+            return res.status(500).json({ success: false, message: 'Error al guardar los datos', error: err.message });
+        }
+
+        console.log('Datos insertados con ID:', this.lastID); // Log para verificar el ID del nuevo registro
+        res.json({ success: true, message: 'Datos guardados correctamente', id: this.lastID });
+    });
+});
+
+
+
+
+app.get('/api/perifericos_almacenados', (req, res) => {
+    db.all('SELECT * FROM data_perifericos', [], (err, rows) => {
+        if (err) {
+            console.error('Error retrieving equipos', err);
+            return res.status(500).send('Error retrieving equipos');
+        }
+        res.json(rows);
+    });
+});
+
+
+// Endpoint para eliminar un periférico
+app.delete('/api/eliminar_periferico/:id', (req, res) => {
+    const id = req.params.id;
+    db.run('DELETE FROM data_perifericos WHERE id = ?', [id], function(err) {
+        if (err) {
+            console.error('Error deleting periférico', err);
+            return res.status(500).send('Error deleting periférico');
+        }
+        if (this.changes === 0) {
+            return res.status(404).send('Periférico no encontrado');
+        }
+        res.status(204).send(); // No content, deletion successful
+    });
 });
